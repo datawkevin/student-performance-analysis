@@ -3,13 +3,13 @@ title: "Impact of Test Preparation and Extracurricular Activities on Student Per
 author: "Kevin Topi"
 date: "2025-07-31"
 output:
+  github_document:
+    toc: true
+    toc_depth: 2
   html_document:
     toc: true
     toc_depth: 2
     number_sections: true
-  github_document:
-    toc: true
-    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}

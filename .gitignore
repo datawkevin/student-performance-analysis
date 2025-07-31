@@ -7,9 +7,6 @@
 # Data folders (exclude raw datasets)
 student_performance_dataset/
 
-# Output folders (figures, temp outputs)
-figures/
-
 # Compiled files
 *.html
 
