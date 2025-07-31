@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # R and RStudio files
 .Rhistory
 .RData
@@ -16,6 +17,8 @@ student_performance_dataset/
 # (Optional) Exclude markdown intermediate files
 *.utf8.md
 =======
+=======
+>>>>>>> 4f34b05d4ed9181f91568ec34d285f9b701bf605
 # History files
 .Rhistory
 .Rapp.history
@@ -65,4 +68,7 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+<<<<<<< HEAD
 >>>>>>> 77923982f7b9b4e3cf7a17cfd13fbfa51f00e4b4
+=======
+>>>>>>> 4f34b05d4ed9181f91568ec34d285f9b701bf605
