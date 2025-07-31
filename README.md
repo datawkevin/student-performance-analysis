@@ -44,10 +44,10 @@ This analysis explores how different types of preparation and extracurricular ac
 ## Visual Summary
 
 **Math: Family Support**
-![Math Score by Family Support](figures/math_family_support.png)
+![Math Score by Family Support](figures/boxplot_math_by_famsup.png)
 
 **Portuguese: Extracurricular Activities**
-![Portuguese Score by Extracurricular Activities](figures/portuguese_activities.png)
+![Portuguese Score by Extracurricular Activities](figures/boxplot_por_by_activities.png)
 
 ---
 
