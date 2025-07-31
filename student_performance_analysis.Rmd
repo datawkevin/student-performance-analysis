@@ -1,0 +1,435 @@
+---
+title: "Impact of Test Preparation and Extracurricular Activities on Student Performance"
+author: "Kevin Topi"
+date: "2025-07-31"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+  github_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Intoduction
+
+This analysis explores how different types of preparation and extracurricular activities influence students final grades in Math and Portuguese. By examining the effects of educational and family support, extra paid lessons, and participation in extracurricular activities, we aim to provide actionable insights for educators and policymakers.
+
+# Data & Methods
+
+**Business Goal**:
+Identify how different types of preparation and participation in extracurricular activities influence student scores.
+
+**Problem/Question**:
+How does preparation and participation in extracurricular activities influence performance in various subjects?
+
+**Predictors**:
+
+*schoolsup*: Extra educational support (yes/no)
+
+*famsup*: Family educational support (yes/no)
+
+*paid*: Extra paid classes within the course subject (yes/no)
+
+*activities*: Participation in extracurricular activities (yes/no)
+
+*Outcome*:
+
+*G3*: Final grade (numeric, 0–20)
+
+## Data Collection
+
+We use the [UCI Machine Learning Repository: Student Performance Data Set](https://archive.ics.uci.edu/dataset/320/student+performance), which contains detailed data on student characteristics, preparation methods, and academic performance in Math and Portuguese subjects. Here, we load both datasets and merge them on common student characteristics.
+
+``` {r}
+# Install required packages if not already installed
+# install.packages(c("tidyverse", "janitor"))
+
+library(tidyverse)
+library(janitor)
+
+# Load datasets
+df_mat <- read_delim("student_performance_dataset/student-mat.csv", delim = ";", col_names=TRUE) %>%
+  clean_names() 
+df_por <- read_delim("student_performance_dataset/student-por.csv", delim = ";", col_names=TRUE) %>%
+  clean_names()
+
+# Merge on common identifiers
+df_merged <- inner_join(
+  df_mat,
+  df_por,
+  by = c("school","sex","age","address","famsize","pstatus","medu","fedu","mjob","fjob","reason","nursery","internet"),
+  suffix = c("_mat", "_por")
+)
+
+# Check for duplicates
+nrow(df_merged)
+
+# Check structure and get summary
+str(df_merged)
+summary(df_merged)
+```
+
+**Data Merging Approach:**
+The original Math and Portuguese datasets do not include a unique student identifier. Following the recommended method from the UCI documentation, we merged the datasets using a combination of demographic and family variables (*school*, *sex*, *age*, *address*, *famsize*, *pstatus*, *medu*, *fedu*, *mjob*, *fjob*, *reason*, *nursery*, and *internet*) as a composite join key.
+
+After merging, the resulting dataset contains **382 matched records** (students present in both subject datasets with identical characteristics). This is consistent with the standard practice for this dataset and enables reliable cross-subject analysis in the absence of a unique identifier.
+
+## Data Cleaning
+
+```{r}
+# Create subset with relevant variables and ensure categorical variables are factors
+# Create subset with relevant variables and ensure categorical variables are factors
+df_subset <- df_merged %>%
+  mutate(across(where(is.character), as.factor)) %>%
+  select(schoolsup_mat,famsup_mat, paid_mat, activities_mat, g3_mat, schoolsup_por, famsup_por, paid_por, activities_por, g3_por)
+
+
+# Check for missing values
+colSums(is.na(df_subset))
+
+# Verify data types
+sapply(df_subset, class)
+```
+
+# Exploratory Analysis (Math Scores)
+
+We explore how different types of support and activities relate to Math final grades (g3_mat).
+For each preparation type, we report summary statistics and visualize the distribution of Math scores.
+
+## School Support
+
+```{r}
+df_clean <- df_subset
+
+summary_schoolsup_mat <- df_clean %>%
+  group_by(schoolsup_mat) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_mat, na.rm = TRUE),
+    median = median(g3_mat, na.rm = TRUE),
+    sd = sd(g3_mat, na.rm = TRUE),
+    min = min(g3_mat, na.rm = TRUE),
+    max = max(g3_mat, na.rm = TRUE)
+  )
+
+print(summary_schoolsup_mat)
+
+# Boxplot: Score by school support
+p_schoolsup_mat <- ggplot(df_clean, aes(x = schoolsup_mat, y = g3_mat)) +
+  geom_boxplot() +
+  labs(title = "Math Score by School Support",
+       x = "School Support",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_schoolsup_mat
+```
+
+*Interpretation:*  
+Students who received school support (“Yes”) tend to have lower or similar median Math scores compared to those who did not receive support. This may reflect that school support is targeted at students needing additional help.
+
+
+## Family Support
+
+```{r}
+summary_famsup_mat <- df_clean %>%
+  group_by(famsup_mat) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_mat, na.rm = TRUE),
+    median = median(g3_mat, na.rm = TRUE),
+    sd = sd(g3_mat, na.rm = TRUE),
+    min = min(g3_mat, na.rm = TRUE),
+    max = max(g3_mat, na.rm = TRUE)
+  )
+print(summary_famsup_mat)
+
+# Boxplot: Score by family support
+p_famsup_mat <- ggplot(df_clean, aes(x = famsup_mat, y = g3_mat)) +
+  geom_boxplot() +
+  labs(title = "Math Score by Family Support",
+       x = "Family Support",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_famsup_mat
+```
+
+*Interpretation:*  
+Students reporting family support (“Yes”) have a higher median Math score and often a narrower spread of scores, indicating a positive association between family involvement and Math achievement.
+
+
+## Extra Paid Classes
+
+``` {r}
+summary_paid_mat <- df_clean %>%
+  group_by(paid_mat) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_mat, na.rm = TRUE),
+    median = median(g3_mat, na.rm = TRUE),
+    sd = sd(g3_mat, na.rm = TRUE),
+    min = min(g3_mat, na.rm = TRUE),
+    max = max(g3_mat, na.rm = TRUE)
+  )
+print(summary_paid_mat)
+
+# Boxplot: Score by extra paid classes
+p_paid_mat <- ggplot(df_clean, aes(x = paid_mat, y = g3_mat)) +
+  geom_boxplot() +
+  labs(title = "Math Score by Extra Paid Classes",
+       x = "Extra Paid Classes",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_paid_mat
+```
+
+*Interpretation:*  
+Students with extra paid classes do not consistently outperform their peers; in some cases, they show similar or even lower median Math scores, possibly because paid support is provided to students already struggling.
+
+
+## Extracurricular Activities
+
+``` {r}
+summary_activities_mat <- df_clean %>%
+  group_by(activities_mat) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_mat, na.rm = TRUE),
+    median = median(g3_mat, na.rm = TRUE),
+    sd = sd(g3_mat, na.rm = TRUE),
+    min = min(g3_mat, na.rm = TRUE),
+    max = max(g3_mat, na.rm = TRUE)
+  )
+print(summary_activities_mat)
+
+# Boxplot: Score by extracurricular activities
+p_activities_mat <- ggplot(df_clean, aes(x = activities_mat, y = g3_mat)) +
+  geom_boxplot() +
+  labs(title = "Math Score by Extra Curricular Activities",
+       x = "Extra Curricular Activities",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_activities_mat
+```
+
+*Interpretation:*  
+Participation in extracurricular activities shows a small or moderate positive difference in median Math scores, but substantial overlap in distributions suggests the effect is not strong for all students.
+
+
+# Exploratory Analysis (Portuguese Scores)
+
+## School Support
+
+```{r}
+summary_schoolsup_por <- df_clean %>%
+  group_by(schoolsup_por) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_por, na.rm = TRUE),
+    median = median(g3_por, na.rm = TRUE),
+    sd = sd(g3_por, na.rm = TRUE),
+    min = min(g3_por, na.rm = TRUE),
+    max = max(g3_por, na.rm = TRUE)
+  )
+print(summary_schoolsup_por)
+
+# Boxplot: Score by school support
+p_schoolsup_por <- ggplot(df_clean, aes(x = schoolsup_por, y = g3_por)) +
+  geom_boxplot() +
+  labs(title = "Portuguese Score by School Support",
+       x = "School Support",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_schoolsup_por
+```
+
+*Interpretation:*  
+Students with school provided support typically have similar or slightly lower median Portuguese scores, again likely reflecting support allocation to students needing additional assistance.
+
+
+## Family Support
+
+```{r}
+summary_famsup_por <- df_clean %>%
+  group_by(famsup_por) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_por, na.rm = TRUE),
+    median = median(g3_por, na.rm = TRUE),
+    sd = sd(g3_por, na.rm = TRUE),
+    min = min(g3_por, na.rm = TRUE),
+    max = max(g3_por, na.rm = TRUE)
+  )
+print(summary_famsup_por)
+
+# Boxplot: Score by family support
+p_famsup_por <- ggplot(df_clean, aes(x = famsup_por, y = g3_por)) +
+  geom_boxplot() +
+  labs(title = "Portuguese Score by Family Support",
+       x = "Family Support",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_famsup_por
+```
+
+*Interpretation:*  
+Students with family support (“Yes”) tend to achieve higher median Portuguese scores, supporting the positive role of family involvement in academic performance.
+
+
+## Extra Paid Classes
+
+```{r}
+summary_paid_por <- df_clean %>%
+  group_by(paid_por) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_por, na.rm = TRUE),
+    median = median(g3_por, na.rm = TRUE),
+    sd = sd(g3_por, na.rm = TRUE),
+    min = min(g3_por, na.rm = TRUE),
+    max = max(g3_por, na.rm = TRUE)
+  )
+print(summary_paid_por)
+
+# Boxplot: Score by extra paid classes
+p_paid_por <- ggplot(df_clean, aes(x = paid_por, y = g3_por)) +
+  geom_boxplot() +
+  labs(title = "Portuguese Score by Extra Paid Classes",
+       x = "Extra Paid Classes",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_paid_por
+```
+
+*Interpretation:*  
+The effect of paid classes on Portuguese scores is variable and often not significant; as with Math, this may reflect targeted remedial interventions.
+
+
+## Extracurricular Activities
+
+```{r}
+summary_activities_por <- df_clean %>%
+  group_by(activities_por) %>%
+  summarize(
+    count = n(),
+    mean = mean(g3_por, na.rm = TRUE),
+    median = median(g3_por, na.rm = TRUE),
+    sd = sd(g3_por, na.rm = TRUE),
+    min = min(g3_por, na.rm = TRUE),
+    max = max(g3_por, na.rm = TRUE)
+  )
+print(summary_activities_por)
+
+# Boxplot: Score by extracurricular activities
+p_activities_por <- ggplot(df_clean, aes(x = activities_por, y = g3_por)) +
+  geom_boxplot() +
+  labs(title = "Portuguese Score by Extra Curricular Activities",
+       x = "Extra Curricular Activities",
+       y = "Final Grade") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5))
+p_activities_por
+```
+
+*Interpretation:*  
+Participation in extracurricular activities appears to be weakly associated with higher Portuguese scores, but there is considerable overlap between groups.
+
+
+# Statistical Modeling
+
+To quantify the impact of each type of support and extracurricular activities on students final grades, we fit a linear regression model.
+
+Predictor variables are converted to binary (1 = yes, 0 = no).
+
+## Linear Regression (Math Scores)
+
+```{r}
+# Prepare predictors as binary (0/1)
+df_plot_mat <- df_clean
+prep_cols <- c("schoolsup_mat", "famsup_mat", "paid_mat", "activities_mat")
+df_plot_mat[prep_cols] <- lapply(df_plot_mat[prep_cols], function(x) ifelse(tolower(as.character(x)) == "yes", 1, 0))
+
+# Fit the linear regression model
+model_math <- lm(g3_mat ~ schoolsup_mat + famsup_mat + paid_mat + activities_mat, data = df_plot_mat)
+summary(model_math)
+```
+
+*Interpretation:*  
+In the regression model, family support has a positive and potentially significant association with Math grades. School support and paid classes show weaker or negative associations, possibly due to being targeted at students who are struggling. Participation in extracurricular activities has a minor and often non-significant effect.
+
+
+## Linear Regression (Portuguese Scores)
+
+```{r}
+# Prepare predictors as binary (0/1)
+df_plot_por <- df_clean
+prep_cols <- c("schoolsup_por", "famsup_por", "paid_por", "activities_por")
+df_plot_por[prep_cols] <- lapply(df_plot_por[prep_cols], function(x) ifelse(tolower(as.character(x)) == "yes", 1, 0))
+
+# Fit the linear regression model
+model_por <- lm(g3_por ~ schoolsup_por + famsup_por + paid_por + activities_por, data = df_plot_por)
+summary(model_por)
+```
+
+*Interpretation:*  
+For Portuguese grades, the regression model again highlights family support as a key positive predictor. The effects of school support, paid classes, and extracurricular activities are less pronounced and not always statistically significant.
+
+# Results and Discussion
+
+Our analysis across both Math and Portuguese subjects reveals several consistent trends regarding the impact of educational support and extracurricular activities on student performance:
+
+- **Family Educational Support** emerged as the most reliable predictor of academic achievement. Students with family support consistently attained higher median final grades in both subjects, and regression models indicated a positive and often significant association. This highlights the critical role of family engagement in students academic success.
+
+- **School Provided Support** generally correlated with lower or similar median grades. This likely reflects that such support is offered to students facing academic difficulties, rather than indicating an ineffective intervention. While this variable is important for targeting resources, its association with outcomes should be interpreted in light of this context.
+
+- **Paid Tutoring** did not consistently predict higher final grades. In many cases, students receiving paid support had similar or lower median scores, suggesting that paid tutoring is often remedial and directed toward students who are already struggling, rather than boosting achievement for all.
+
+- **Participation in Extracurricular Activities** showed weak or modest associations with student performance. While students involved in activities sometimes achieved slightly higher grades, the differences were not pronounced, and substantial overlap existed between groups.
+
+Overall, **family involvement stands out as the most actionable factor linked to improved academic performance**. Other forms of support, especially those targeted at struggling students, play a nuanced role and require careful evaluation to assess their effectiveness.
+
+# Conclusion
+
+This analysis demonstrates that among various support mechanisms and activities, **family educational support is the most consistent and influential factor in promoting higher academic achievement** in both Math and Portuguese for secondary school students. While school provided support and paid tutoring are valuable, they tend to be directed toward students already facing challenges, which may explain their weaker association with improved outcomes. Participation in extracurricular activities offers potential benefits, but its direct impact on grades appears modest.
+
+These findings underscore the importance of considering the context and intent behind educational support programs when interpreting their effects on student performance.
+
+---
+
+# Recommendations
+
+- **Prioritize Family Engagement:**  
+  Schools and educators should develop and strengthen initiatives that actively involve families in their children’s learning. Family engagement programs could have a significant impact on student achievement.
+
+- **Evaluate and Personalize Support Programs:**  
+  School provided and paid support services should be regularly evaluated for effectiveness, with a focus on personalization and early intervention, ensuring that students receive the most appropriate assistance based on their needs.
+
+- **Promote Balanced Student Development:**  
+  While extracurricular activities may not strongly influence grades, they contribute to well-rounded development. Schools should continue to encourage participation in such activities as part of a holistic educational approach.
+
+- **Further Research:**  
+  Additional analysis could examine the long-term impact of support interventions, their effectiveness across different student groups, and how combinations of support types interact to influence educational outcomes.
+
+
+
+

@@ -1,0 +1,19 @@
+# R and RStudio files
+.Rhistory
+.RData
+.Rproj.user/
+
+# Data folders (exclude raw datasets)
+student_performance_dataset/
+
+# Output folders (figures, temp outputs)
+figures/
+
+# Compiled files
+*.html
+
+# (Optional) Ignore scripts/output not for sharing
+# scripts/
+
+# (Optional) Exclude markdown intermediate files
+*.utf8.md
