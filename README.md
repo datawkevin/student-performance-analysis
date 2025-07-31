@@ -15,8 +15,6 @@ This project explores how different types of educational support and extracurric
 - [How to Reproduce](#how-to-reproduce)
 - [Recommendations](#recommendations)
 - [Full Analysis](#full-analysis)
-- [License](#license)
-- [Contact](#contact)
 
 ---
 
@@ -44,8 +42,6 @@ This analysis explores how different types of preparation and extracurricular ac
 ---
 
 ## Visual Summary
-
-*(Be sure to save your plots as images in a `figures/` folder and update the paths below!)*
 
 **Math: Family Support**
 ![Math Score by Family Support](figures/math_family_support.png)
